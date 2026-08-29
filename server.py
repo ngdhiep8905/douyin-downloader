@@ -11,15 +11,15 @@ MOBILE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/
 
 session = requests.Session()
 
-def extract_douyin_url(text):
-    """Trích xuất URL Douyin từ bất kỳ đoạn văn bản tiếng Trung nào người dùng dán vào"""
+def extract_url(text):
+    """Trích xuất URL từ bất kỳ đoạn văn bản nào (Douyin hoặc TikTok)"""
     match = re.search(r'https?://[^\s]+', text)
     if match:
         return match.group(0).strip()
     return text.strip()
 
 def extract_video_id(final_url):
-    """Trích xuất Video ID từ đường dẫn Douyin"""
+    """Trích xuất Video ID từ đường dẫn Douyin/TikTok"""
     match = re.search(r'(?:video|note)/(\d+)', final_url) or re.search(r'modal_id=(\d+)', final_url)
     if match:
         return match.group(1)
@@ -41,18 +41,45 @@ def init_douyin_session():
     except Exception as e:
         print("Lỗi tạo ttwid cookie:", e)
 
-def parse_douyin_video(raw_input):
-    input_url = extract_douyin_url(raw_input)
-    if not input_url:
-        return {"success": False, "error": "Vui lòng nhập đường dẫn video Douyin!"}
+def parse_tiktok_video(final_url):
+    """Xử lý bóc tách video TikTok không logo qua TikWM Engine"""
+    try:
+        tik_res = session.post('https://www.tikwm.com/api/', data={'url': final_url}, headers={'User-Agent': DESKTOP_UA}, timeout=10)
+        if tik_res.status_code == 200:
+            js = tik_res.json()
+            if js.get('code') == 0 and js.get('data'):
+                d = js['data']
+                print(" -> TikTok Engine (TikWM) THÀNH CÔNG!")
+                return {
+                    "success": True,
+                    "data": {
+                        "id": d.get('id') or "tiktok",
+                        "title": d.get('title', 'TikTok Video'),
+                        "author": {
+                            "name": d.get('author', {}).get('nickname', 'TikTok User'),
+                            "avatar": d.get('author', {}).get('avatar', '')
+                        },
+                        "coverUrl": d.get('cover', ''),
+                        "videoUrl": d.get('play', ''),
+                        "musicUrl": d.get('music', ''),
+                        "statistics": {
+                            "digg_count": d.get('digg_count', 0),
+                            "comment_count": d.get('comment_count', 0),
+                            "share_count": d.get('share_count', 0)
+                        }
+                    }
+                }
+    except Exception as e:
+        print("Lỗi TikTok Engine:", e)
+    return None
 
-    # 1. Giải mã Short Link (v.douyin.com) -> Long Link
+def parse_douyin_or_tiktok_video(raw_input):
+    input_url = extract_url(raw_input)
+    if not input_url:
+        return {"success": False, "error": "Vui lòng nhập đường dẫn video Douyin hoặc TikTok!"}
+
+    # 1. Giải mã Short Link -> Long Link
     final_url = input_url
-    headers = {
-        'User-Agent': DESKTOP_UA,
-        'Referer': 'https://www.douyin.com/',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
-    }
     try:
         res = session.get(input_url, headers={'User-Agent': MOBILE_UA}, allow_redirects=True, timeout=8)
         final_url = res.url
@@ -60,10 +87,18 @@ def parse_douyin_video(raw_input):
         print("Lỗi theo dõi redirect:", e)
 
     video_id = extract_video_id(final_url)
-    print(f"[DouyinParser] Input: {input_url} | Final: {final_url} | VideoID: {video_id}")
+    print(f"[MediaParser] Input: {input_url} | Final: {final_url} | VideoID: {video_id}")
 
-    # ===== CHÍNH: Douyin 2026 Web API Engine =====
-    if video_id:
+    # Nhận diện nếu là link TikTok
+    is_tiktok = 'tiktok.com' in final_url.lower() or 'tiktok.com' in input_url.lower()
+
+    if is_tiktok:
+        result = parse_tiktok_video(final_url)
+        if result:
+            return result
+
+    # ===== ENGINE DOUYIN 2026 (Hoặc fallback cho TikTok) =====
+    if video_id and not is_tiktok:
         try:
             init_douyin_session()
             api_headers = {
@@ -124,41 +159,16 @@ def parse_douyin_video(raw_input):
                         }
                     }
         except Exception as e_main:
-            print("Lỗi Engine chính:", e_main)
+            print("Lỗi Engine Douyin chính:", e_main)
 
-    # ===== PHƯƠNG ÁN DỰ PHÒNG 1: TikWM Engine =====
-    try:
-        tik_res = session.post('https://www.tikwm.com/api/', data={'url': final_url}, headers={'User-Agent': DESKTOP_UA}, timeout=8)
-        if tik_res.status_code == 200:
-            js = tik_res.json()
-            if js.get('code') == 0 and js.get('data'):
-                d = js['data']
-                print(" -> Phương án dự phòng (TikWM) THÀNH CÔNG!")
-                return {
-                    "success": True,
-                    "data": {
-                        "id": d.get('id') or video_id or "douyin",
-                        "title": d.get('title', 'Douyin Video'),
-                        "author": {
-                            "name": d.get('author', {}).get('nickname', 'Douyin User'),
-                            "avatar": d.get('author', {}).get('avatar', '')
-                        },
-                        "coverUrl": d.get('cover', ''),
-                        "videoUrl": d.get('play', ''),
-                        "musicUrl": d.get('music', ''),
-                        "statistics": {
-                            "digg_count": d.get('digg_count', 0),
-                            "comment_count": d.get('comment_count', 0),
-                            "share_count": d.get('share_count', 0)
-                        }
-                    }
-                }
-    except Exception as e_tik:
-        print("Lỗi dự phòng TikWM:", e_tik)
+    # ===== PHƯƠNG ÁN DỰ PHÒNG CHUNG (TikWM Engine) =====
+    result = parse_tiktok_video(final_url)
+    if result:
+        return result
 
     return {
         "success": False,
-        "error": "Không thể lấy thông tin video. Vui lòng kiểm tra lại đường dẫn Douyin!"
+        "error": "Không thể lấy thông tin video. Vui lòng kiểm tra lại đường dẫn Douyin hoặc TikTok!"
     }
 
 class DouyinRequestHandler(SimpleHTTPRequestHandler):
@@ -172,7 +182,7 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
             try:
                 data = json.loads(post_body.decode('utf-8'))
                 raw_url = data.get('url', '')
-                result = parse_douyin_video(raw_url)
+                result = parse_douyin_or_tiktok_video(raw_url)
                 
                 self.send_response(200 if result.get('success') else 400)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
@@ -193,7 +203,7 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
             query = urllib.parse.parse_qs(parsed_url.query)
             file_url = query.get('url', [''])[0]
             file_type = query.get('type', ['video'])[0]
-            filename = query.get('filename', ['douyin_video.mp4'])[0]
+            filename = query.get('filename', ['video_nowatermark.mp4'])[0]
 
             if not file_url:
                 self.send_error(400, "Missing URL")
@@ -220,7 +230,7 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     print("==================================================")
-    print(f" Douyin Downloader Server running at: http://localhost:{PORT}")
+    print(f" Douyin & TikTok Downloader Server running at: http://localhost:{PORT}")
     print("==================================================")
     server = HTTPServer(('0.0.0.0', PORT), DouyinRequestHandler)
     try:
