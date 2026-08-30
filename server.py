@@ -5,11 +5,13 @@ import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import requests
 
+YTDLP_ERR_MSG = ""
 try:
     import yt_dlp
     HAS_YTDLP = True
-except ImportError:
+except Exception as e_import:
     HAS_YTDLP = False
+    YTDLP_ERR_MSG = str(e_import)
 
 PORT = 3000
 DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -52,14 +54,15 @@ def init_douyin_session():
 def parse_ytdlp_media(url):
     """Bóc tách video đa nền tảng (YouTube Watch/Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
     if not HAS_YTDLP:
-        return None
+        print(f" -> HAS_YTDLP là False! Import Err: {YTDLP_ERR_MSG}")
+        return None, f"yt-dlp chưa được cài đặt: {YTDLP_ERR_MSG}"
     try:
         ydl_opts = {
             'skip_download': True,
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            'noplaylist': True,  # Bỏ qua toàn bộ danh sách phát playlist để xử lý video đơn trong 1-2 giây
+            'noplaylist': True,
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'extractor_args': {
                 'youtube': {
@@ -100,10 +103,11 @@ def parse_ytdlp_media(url):
                             "share_count": 0
                         }
                     }
-                }
+                }, None
     except Exception as e:
         print("Lỗi yt-dlp Engine:", e)
-    return None
+        return None, str(e)
+    return None, "Không tìm thấy đường dẫn video phù hợp trong yt-dlp"
 
 def parse_instagram_fallback(url):
     """Bóc tách dự phòng cho Instagram Reel"""
@@ -252,7 +256,7 @@ def parse_douyin_or_tiktok_video(raw_input):
             print("Lỗi Engine Douyin chính:", e_main)
 
     # ===== DỰ PHÒNG CHUNG VÀ CÁC NỀN TẢNG KHÁC (YouTube/Facebook/Instagram/TikTok) =====
-    result_ytdlp = parse_ytdlp_media(final_url)
+    result_ytdlp, err_ytdlp = parse_ytdlp_media(final_url)
     if result_ytdlp:
         return result_ytdlp
 
@@ -267,7 +271,7 @@ def parse_douyin_or_tiktok_video(raw_input):
 
     return {
         "success": False,
-        "error": "Không thể lấy thông tin video. Vui lòng kiểm tra lại đường dẫn video!"
+        "error": f"Không thể lấy video: {err_ytdlp if err_ytdlp else 'Vui lòng kiểm tra lại link'}"
     }
 
 class DouyinRequestHandler(SimpleHTTPRequestHandler):
