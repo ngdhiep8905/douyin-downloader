@@ -56,7 +56,18 @@ def parse_ytdlp_media(url):
             'skip_download': True,
             'quiet': True,
             'no_warnings': True,
+            'nocheckcertificate': True,
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'ios', 'web'],
+                    'skip': ['hls', 'dash']
+                }
+            },
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9',
+            }
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -70,7 +81,7 @@ def parse_ytdlp_media(url):
                 video_url = mp4_formats[-1]['url'] if mp4_formats else info['formats'][-1]['url']
 
             if video_url:
-                print(" -> yt-dlp Engine THÀNH CÔNG!")
+                print(f" -> yt-dlp Engine THÀNH CÔNG cho {url[:40]}!")
                 return {
                     "success": True,
                     "data": {
@@ -89,6 +100,35 @@ def parse_ytdlp_media(url):
                 }
     except Exception as e:
         print("Lỗi yt-dlp Engine:", e)
+    return None
+
+def parse_instagram_fallback(url):
+    """Bóc tách dự phòng cho Instagram Reel"""
+    try:
+        headers = {'User-Agent': MOBILE_UA}
+        r = session.get(url, headers=headers, timeout=8)
+        # Search for og:video
+        og_video = re.search(r'property="og:video"\s+content="([^"]+)"', r.text) or re.search(r'content="([^"]+)"\s+property="og:video"', r.text)
+        og_title = re.search(r'property="og:title"\s+content="([^"]+)"', r.text)
+        og_image = re.search(r'property="og:image"\s+content="([^"]+)"', r.text)
+
+        if og_video:
+            v_url = og_video.group(1).replace('&amp;', '&').replace('\\u0026', '&')
+            print(" -> Instagram Fallback Engine THÀNH CÔNG!")
+            return {
+                "success": True,
+                "data": {
+                    "id": "instagram",
+                    "title": og_title.group(1) if og_title else "Instagram Reel",
+                    "author": {"name": "Instagram Creator", "avatar": ""},
+                    "coverUrl": og_image.group(1) if og_image else "",
+                    "videoUrl": v_url,
+                    "musicUrl": "",
+                    "statistics": {"digg_count": 0, "comment_count": 0, "share_count": 0}
+                }
+            }
+    except Exception as e:
+        print("Lỗi Instagram Fallback:", e)
     return None
 
 def parse_tikwm_media(final_url):
@@ -141,6 +181,7 @@ def parse_douyin_or_tiktok_video(raw_input):
     print(f"[MediaParser] Input: {input_url} | Final: {final_url} | VideoID: {video_id}")
 
     is_douyin = 'douyin.com' in url_lower or 'douyin.com' in input_url.lower()
+    is_instagram = 'instagram.com' in url_lower or 'instagr.am' in input_url.lower()
 
     # ===== ENGINE CHÍNH CHO DOUYIN =====
     if is_douyin and video_id:
@@ -207,15 +248,18 @@ def parse_douyin_or_tiktok_video(raw_input):
             print("Lỗi Engine Douyin chính:", e_main)
 
     # ===== DỰ PHÒNG CHUNG VÀ CÁC NỀN TẢNG KHÁC (YouTube/Facebook/Instagram/TikTok) =====
-    # Thử TikWM Engine trước cho TikTok/Douyin
-    result_tik = parse_tikwm_media(final_url)
-    if result_tik:
-        return result_tik
-
-    # Thử yt-dlp Engine cho Facebook, Instagram, YouTube, etc.
     result_ytdlp = parse_ytdlp_media(final_url)
     if result_ytdlp:
         return result_ytdlp
+
+    if is_instagram:
+        result_ig = parse_instagram_fallback(final_url)
+        if result_ig:
+            return result_ig
+
+    result_tik = parse_tikwm_media(final_url)
+    if result_tik:
+        return result_tik
 
     return {
         "success": False,
