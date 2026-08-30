@@ -5,6 +5,12 @@ import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import requests
 
+try:
+    import yt_dlp
+    HAS_YTDLP = True
+except ImportError:
+    HAS_YTDLP = False
+
 PORT = 3000
 DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 MOBILE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
@@ -12,7 +18,7 @@ MOBILE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/
 session = requests.Session()
 
 def extract_url(text):
-    """Trích xuất URL từ bất kỳ đoạn văn bản nào (Douyin hoặc TikTok)"""
+    """Trích xuất URL từ bất kỳ đoạn văn bản nào"""
     match = re.search(r'https?://[^\s]+', text)
     if match:
         return match.group(0).strip()
@@ -41,15 +47,59 @@ def init_douyin_session():
     except Exception as e:
         print("Lỗi tạo ttwid cookie:", e)
 
-def parse_tiktok_video(final_url):
-    """Xử lý bóc tách video TikTok không logo qua TikWM Engine"""
+def parse_ytdlp_media(url):
+    """Bóc tách video đa nền tảng (YouTube Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
+    if not HAS_YTDLP:
+        return None
+    try:
+        ydl_opts = {
+            'skip_download': True,
+            'quiet': True,
+            'no_warnings': True,
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            title = info.get('title', 'Video')
+            author = info.get('uploader') or info.get('uploader_id') or 'Media Creator'
+            cover = info.get('thumbnail', '')
+            
+            video_url = info.get('url')
+            if not video_url and info.get('formats'):
+                mp4_formats = [f for f in info['formats'] if f.get('ext') == 'mp4' and f.get('url')]
+                video_url = mp4_formats[-1]['url'] if mp4_formats else info['formats'][-1]['url']
+
+            if video_url:
+                print(" -> yt-dlp Engine THÀNH CÔNG!")
+                return {
+                    "success": True,
+                    "data": {
+                        "id": info.get('id', 'media'),
+                        "title": title,
+                        "author": {"name": author, "avatar": ""},
+                        "coverUrl": cover,
+                        "videoUrl": video_url,
+                        "musicUrl": "",
+                        "statistics": {
+                            "digg_count": info.get('like_count', 0),
+                            "comment_count": info.get('comment_count', 0),
+                            "share_count": 0
+                        }
+                    }
+                }
+    except Exception as e:
+        print("Lỗi yt-dlp Engine:", e)
+    return None
+
+def parse_tikwm_media(final_url):
+    """Xử lý bóc tách video TikTok qua TikWM Service"""
     try:
         tik_res = session.post('https://www.tikwm.com/api/', data={'url': final_url}, headers={'User-Agent': DESKTOP_UA}, timeout=10)
         if tik_res.status_code == 200:
             js = tik_res.json()
             if js.get('code') == 0 and js.get('data'):
                 d = js['data']
-                print(" -> TikTok Engine (TikWM) THÀNH CÔNG!")
+                print(" -> TikWM Engine THÀNH CÔNG!")
                 return {
                     "success": True,
                     "data": {
@@ -70,13 +120,13 @@ def parse_tiktok_video(final_url):
                     }
                 }
     except Exception as e:
-        print("Lỗi TikTok Engine:", e)
+        print("Lỗi TikWM Engine:", e)
     return None
 
 def parse_douyin_or_tiktok_video(raw_input):
     input_url = extract_url(raw_input)
     if not input_url:
-        return {"success": False, "error": "Vui lòng nhập đường dẫn video Douyin hoặc TikTok!"}
+        return {"success": False, "error": "Vui lòng nhập đường dẫn video hợp lệ!"}
 
     # 1. Giải mã Short Link -> Long Link
     final_url = input_url
@@ -87,18 +137,13 @@ def parse_douyin_or_tiktok_video(raw_input):
         print("Lỗi theo dõi redirect:", e)
 
     video_id = extract_video_id(final_url)
+    url_lower = final_url.lower()
     print(f"[MediaParser] Input: {input_url} | Final: {final_url} | VideoID: {video_id}")
 
-    # Nhận diện nếu là link TikTok
-    is_tiktok = 'tiktok.com' in final_url.lower() or 'tiktok.com' in input_url.lower()
+    is_douyin = 'douyin.com' in url_lower or 'douyin.com' in input_url.lower()
 
-    if is_tiktok:
-        result = parse_tiktok_video(final_url)
-        if result:
-            return result
-
-    # ===== ENGINE DOUYIN 2026 (Hoặc fallback cho TikTok) =====
-    if video_id and not is_tiktok:
+    # ===== ENGINE CHÍNH CHO DOUYIN =====
+    if is_douyin and video_id:
         try:
             init_douyin_session()
             api_headers = {
@@ -161,14 +206,20 @@ def parse_douyin_or_tiktok_video(raw_input):
         except Exception as e_main:
             print("Lỗi Engine Douyin chính:", e_main)
 
-    # ===== PHƯƠNG ÁN DỰ PHÒNG CHUNG (TikWM Engine) =====
-    result = parse_tiktok_video(final_url)
-    if result:
-        return result
+    # ===== DỰ PHÒNG CHUNG VÀ CÁC NỀN TẢNG KHÁC (YouTube/Facebook/Instagram/TikTok) =====
+    # Thử TikWM Engine trước cho TikTok/Douyin
+    result_tik = parse_tikwm_media(final_url)
+    if result_tik:
+        return result_tik
+
+    # Thử yt-dlp Engine cho Facebook, Instagram, YouTube, etc.
+    result_ytdlp = parse_ytdlp_media(final_url)
+    if result_ytdlp:
+        return result_ytdlp
 
     return {
         "success": False,
-        "error": "Không thể lấy thông tin video. Vui lòng kiểm tra lại đường dẫn Douyin hoặc TikTok!"
+        "error": "Không thể lấy thông tin video. Vui lòng kiểm tra lại đường dẫn video!"
     }
 
 class DouyinRequestHandler(SimpleHTTPRequestHandler):
@@ -199,6 +250,13 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed_url = urllib.parse.urlparse(self.path)
+        path = parsed_url.path.rstrip('/')
+
+        # Điều hướng các đường dẫn SEO trang con về index.html
+        if path in ['/tiktok', '/douyin', '/facebook', '/instagram', '/youtube']:
+            self.path = '/index.html'
+            return super().do_GET()
+
         if parsed_url.path == '/api/download':
             query = urllib.parse.parse_qs(parsed_url.query)
             file_url = query.get('url', [''])[0]
@@ -230,7 +288,7 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     print("==================================================")
-    print(f" Douyin & TikTok Downloader Server running at: http://localhost:{PORT}")
+    print(f" SaveTik All-in-One Downloader Server running at: http://localhost:{PORT}")
     print("==================================================")
     server = HTTPServer(('0.0.0.0', PORT), DouyinRequestHandler)
     try:
