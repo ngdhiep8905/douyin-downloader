@@ -84,7 +84,7 @@ def parse_ytdlp_media(url):
             'noplaylist': True,
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'ios'],
+                    'player_client': ['mweb', 'web_embedded', 'android'],
                 }
             }
         }
@@ -124,31 +124,40 @@ def parse_ytdlp_media(url):
     return None, "Không tìm thấy đường dẫn video phù hợp"
 
 def parse_instagram_fallback(url):
-    """Bóc tách dự phòng cho Instagram Reel"""
+    """Bóc tách dự phòng cho Instagram Reel qua Embed Page"""
     try:
         headers = {'User-Agent': MOBILE_UA}
         clean_url = clean_instagram_url(url)
-        r = session.get(clean_url, headers=headers, timeout=8)
-        # Search for og:video
-        og_video = re.search(r'property="og:video"\s+content="([^"]+)"', r.text) or re.search(r'content="([^"]+)"\s+property="og:video"', r.text)
-        og_title = re.search(r'property="og:title"\s+content="([^"]+)"', r.text)
-        og_image = re.search(r'property="og:image"\s+content="([^"]+)"', r.text)
+        
+        # 1. Thử lấy từ Embed Endpoint
+        shortcode = ''
+        match = re.search(r'(?:reel|reels|p)/([a-zA-Z0-9_-]+)', clean_url)
+        if match:
+            shortcode = match.group(1)
+            
+        if shortcode:
+            embed_url = f"https://www.instagram.com/p/{shortcode}/embed/captioned/"
+            r_embed = session.get(embed_url, headers=headers, timeout=8)
+            og_video = re.search(r'property="og:video"\s+content="([^"]+)"', r_embed.text) or re.search(r'content="([^"]+)"\s+property="og:video"', r_embed.text)
+            og_title = re.search(r'property="og:title"\s+content="([^"]+)"', r_embed.text)
+            og_image = re.search(r'property="og:image"\s+content="([^"]+)"', r_embed.text) or re.search(r'display_url":"([^"]+)"', r_embed.text)
 
-        if og_video:
-            v_url = og_video.group(1).replace('&amp;', '&').replace('\\u0026', '&')
-            print(" -> Instagram Fallback Engine THÀNH CÔNG!")
-            return {
-                "success": True,
-                "data": {
-                    "id": "instagram",
-                    "title": og_title.group(1) if og_title else "Instagram Reel",
-                    "author": {"name": "Instagram Creator", "avatar": ""},
-                    "coverUrl": og_image.group(1) if og_image else "",
-                    "videoUrl": v_url,
-                    "musicUrl": "",
-                    "statistics": {"digg_count": 0, "comment_count": 0, "share_count": 0}
+            if og_video:
+                v_url = og_video.group(1).replace('&amp;', '&').replace('\\u0026', '&').replace('\\/', '/')
+                c_url = og_image.group(1).replace('&amp;', '&').replace('\\u0026', '&').replace('\\/', '/') if og_image else ""
+                print(" -> Instagram Fallback Engine THÀNH CÔNG!")
+                return {
+                    "success": True,
+                    "data": {
+                        "id": shortcode,
+                        "title": og_title.group(1) if og_title else "Instagram Reel",
+                        "author": {"name": "Instagram Creator", "avatar": ""},
+                        "coverUrl": c_url,
+                        "videoUrl": v_url,
+                        "musicUrl": "",
+                        "statistics": {"digg_count": 0, "comment_count": 0, "share_count": 0}
+                    }
                 }
-            }
     except Exception as e:
         print("Lỗi Instagram Fallback:", e)
     return None
