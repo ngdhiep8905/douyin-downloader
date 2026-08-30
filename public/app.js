@@ -19,30 +19,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloadAudioBtn = document.getElementById('downloadAudioBtn');
 
   // Xử lý SEO trang con dựa trên URL Path
-  const currentPath = window.location.pathname.toLowerCase().replace(/\/$/, '');
-  const heroHeading = document.querySelector('#downloader h2');
-  
-  if (currentPath === '/tiktok') {
-    document.title = 'Tải Video TikTok Không Logo (Watermark) Miễn Phí HD | SaveTik';
-    if (heroHeading) heroHeading.innerHTML = 'Tải Video TikTok <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
-    if (videoUrlInput) videoUrlInput.placeholder = 'Dán link TikTok vào đây (VD: https://vt.tiktok.com/...)';
-  } else if (currentPath === '/douyin') {
-    document.title = 'Tải Video Douyin Không Logo (Watermark) Miễn Phí HD | SaveTik';
-    if (heroHeading) heroHeading.innerHTML = 'Tải Video Douyin <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
-    if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Douyin vào đây (VD: https://v.douyin.com/...)';
-  } else if (currentPath === '/facebook') {
-    document.title = 'Tải Video Facebook Reels HD Miễn Phí | SaveTik';
-    if (heroHeading) heroHeading.innerHTML = 'Tải Video Facebook Reels <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
-    if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Facebook Reels vào đây...';
-  } else if (currentPath === '/instagram') {
-    document.title = 'Tải Video Instagram Reels HD Miễn Phí | SaveTik';
-    if (heroHeading) heroHeading.innerHTML = 'Tải Video Instagram Reels <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
-    if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Instagram Reels vào đây...';
-  } else if (currentPath === '/youtube') {
-    document.title = 'Tải Video YouTube Shorts HD Miễn Phí | SaveTik';
-    if (heroHeading) heroHeading.innerHTML = 'Tải Video YouTube Shorts <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
-    if (videoUrlInput) videoUrlInput.placeholder = 'Dán link YouTube Shorts vào đây...';
+  function updateSEOPage() {
+    const path = window.location.pathname.toLowerCase();
+    const heroHeading = document.querySelector('#downloader h2');
+    const heroSubtext = document.querySelector('#downloader p');
+
+    if (path.includes('facebook')) {
+      document.title = 'Tải Video Facebook Reels HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Facebook Reels <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Facebook Reels & Watch chất lượng cao, không dính logo và tách nhạc MP3 nhanh chóng.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Facebook Reels vào đây (VD: https://www.facebook.com/reel/...)';
+    } else if (path.includes('instagram')) {
+      document.title = 'Tải Video Instagram Reels HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Instagram Reels <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Instagram Reels chất lượng cao, không dính logo và tách nhạc MP3 nhanh chóng.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Instagram Reels vào đây (VD: https://www.instagram.com/reel/...)';
+    } else if (path.includes('youtube')) {
+      document.title = 'Tải Video YouTube Shorts HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video YouTube Shorts <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video YouTube Shorts chất lượng cao, không dính logo và tách nhạc MP3 nhanh chóng.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link YouTube Shorts vào đây (VD: https://www.youtube.com/shorts/...)';
+    } else if (path.includes('tiktok')) {
+      document.title = 'Tải Video TikTok Không Logo (Watermark) Miễn Phí HD | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video TikTok <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video TikTok chất lượng cao, không dính hình mờ (watermark) và tách nhạc MP3 nhanh chóng.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link TikTok vào đây (VD: https://vt.tiktok.com/...)';
+    } else if (path.includes('douyin')) {
+      document.title = 'Tải Video Douyin Không Logo (Watermark) Miễn Phí HD | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Douyin <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Douyin chất lượng cao, không dính hình mờ (watermark) và tách nhạc MP3 nhanh chóng.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Douyin vào đây (VD: https://v.douyin.com/...)';
+    }
   }
+
+  updateSEOPage();
 
   // Nút Dán Link từ bộ nhớ tạm Clipboard
   if (pasteBtn) {
