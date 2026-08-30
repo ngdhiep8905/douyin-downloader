@@ -81,7 +81,7 @@ def parse_ytdlp_media(url):
                     video_url = formats_with_url[-1]['url']
 
             if video_url:
-                print(f" -> yt-dlp Engine THÀNH CÔNG!")
+                print(f" -> yt-dlp Engine THÀNH CÔNG cho {url[:40]}!")
                 return {
                     "success": True,
                     "data": {
@@ -170,20 +170,22 @@ def parse_douyin_or_tiktok_video(raw_input):
     if not input_url:
         return {"success": False, "error": "Vui lòng nhập đường dẫn video hợp lệ!"}
 
-    # 1. Giải mã Short Link -> Long Link
+    url_lower = input_url.lower()
+    is_youtube = 'youtube.com' in url_lower or 'youtu.be' in url_lower
+    is_instagram = 'instagram.com' in url_lower or 'instagr.am' in url_lower
+    is_douyin = 'douyin.com' in url_lower
+
+    # CHỈ GIẢI MÃ REDIRECT KHI LÀ SHORT LINK (Bỏ qua YouTube/Instagram để tránh dính HTTP 429)
     final_url = input_url
-    try:
-        res = session.get(input_url, headers={'User-Agent': MOBILE_UA}, allow_redirects=True, timeout=8)
-        final_url = res.url
-    except Exception as e:
-        print("Lỗi theo dõi redirect:", e)
+    if not (is_youtube or is_instagram) and ('v.douyin.com' in url_lower or 'vt.tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower):
+        try:
+            res = session.get(input_url, headers={'User-Agent': MOBILE_UA}, allow_redirects=True, timeout=8)
+            final_url = res.url
+        except Exception as e:
+            print("Lỗi theo dõi redirect:", e)
 
     video_id = extract_video_id(final_url)
-    url_lower = final_url.lower()
     print(f"[MediaParser] Input: {input_url} | Final: {final_url} | VideoID: {video_id}")
-
-    is_douyin = 'douyin.com' in url_lower or 'douyin.com' in input_url.lower()
-    is_instagram = 'instagram.com' in url_lower or 'instagr.am' in input_url.lower()
 
     # ===== ENGINE CHÍNH CHO DOUYIN =====
     if is_douyin and video_id:
