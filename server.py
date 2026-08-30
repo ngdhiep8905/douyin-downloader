@@ -54,7 +54,6 @@ def init_douyin_session():
 def parse_ytdlp_media(url):
     """Bóc tách video đa nền tảng (YouTube Watch/Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
     if not HAS_YTDLP:
-        print(f" -> HAS_YTDLP là False! Import Err: {YTDLP_ERR_MSG}")
         return None, f"yt-dlp chưa được cài đặt: {YTDLP_ERR_MSG}"
     try:
         ydl_opts = {
@@ -63,16 +62,10 @@ def parse_ytdlp_media(url):
             'no_warnings': True,
             'nocheckcertificate': True,
             'noplaylist': True,
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'ios', 'web'],
-                    'skip': ['hls', 'dash']
+                    'player_client': ['android', 'ios'],
                 }
-            },
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                'Accept-Language': 'en-US,en;q=0.9',
             }
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -83,11 +76,12 @@ def parse_ytdlp_media(url):
             
             video_url = info.get('url')
             if not video_url and info.get('formats'):
-                mp4_formats = [f for f in info['formats'] if f.get('ext') == 'mp4' and f.get('url')]
-                video_url = mp4_formats[-1]['url'] if mp4_formats else info['formats'][-1]['url']
+                formats_with_url = [f for f in info['formats'] if f.get('url')]
+                if formats_with_url:
+                    video_url = formats_with_url[-1]['url']
 
             if video_url:
-                print(f" -> yt-dlp Engine THÀNH CÔNG cho {url[:40]}!")
+                print(f" -> yt-dlp Engine THÀNH CÔNG!")
                 return {
                     "success": True,
                     "data": {
@@ -107,7 +101,7 @@ def parse_ytdlp_media(url):
     except Exception as e:
         print("Lỗi yt-dlp Engine:", e)
         return None, str(e)
-    return None, "Không tìm thấy đường dẫn video phù hợp trong yt-dlp"
+    return None, "Không tìm thấy đường dẫn video phù hợp"
 
 def parse_instagram_fallback(url):
     """Bóc tách dự phòng cho Instagram Reel"""
@@ -271,7 +265,7 @@ def parse_douyin_or_tiktok_video(raw_input):
 
     return {
         "success": False,
-        "error": f"Không thể lấy video: {err_ytdlp if err_ytdlp else 'Vui lòng kiểm tra lại link'}"
+        "error": f"Không thể xử lý video này: {err_ytdlp if err_ytdlp else 'Vui lòng kiểm tra lại đường dẫn video!'}"
     }
 
 class DouyinRequestHandler(SimpleHTTPRequestHandler):
