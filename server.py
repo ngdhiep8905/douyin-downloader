@@ -23,10 +23,22 @@ def extract_url(text):
     """Trích xuất URL từ bất kỳ đoạn văn bản nào"""
     match = re.search(r'https?://[^\s]+', text)
     if match:
-        url = match.group(0).strip()
-        # Chuẩn hóa link Instagram /reels/ -> /reel/
-        return url.replace('/reels/', '/reel/')
+        return match.group(0).strip()
     return text.strip()
+
+def clean_youtube_url(url):
+    """Chuẩn hóa đường dẫn YouTube để kích hoạt đúng Extractor Youtube của yt-dlp"""
+    match = re.search(r'(?:v=|\/|shorts\/)([a-zA-Z0-9_-]{11})', url)
+    if match:
+        return f"https://www.youtube.com/watch?v={match.group(1)}"
+    return url
+
+def clean_instagram_url(url):
+    """Chuẩn hóa đường dẫn Instagram Reel/Post"""
+    match = re.search(r'(?:reel|reels|p)/([a-zA-Z0-9_-]+)', url)
+    if match:
+        return f"https://www.instagram.com/reel/{match.group(1)}/"
+    return url
 
 def extract_video_id(final_url):
     """Trích xuất Video ID từ đường dẫn Douyin/TikTok"""
@@ -55,6 +67,14 @@ def parse_ytdlp_media(url):
     """Bóc tách video đa nền tảng (YouTube Watch/Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
     if not HAS_YTDLP:
         return None, f"yt-dlp chưa được cài đặt: {YTDLP_ERR_MSG}"
+    
+    # Chuẩn hóa URL cho YouTube & Instagram
+    clean_target_url = url
+    if 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
+        clean_target_url = clean_youtube_url(url)
+    elif 'instagram.com' in url.lower() or 'instagr.am' in url.lower():
+        clean_target_url = clean_instagram_url(url)
+
     try:
         ydl_opts = {
             'skip_download': True,
@@ -69,7 +89,7 @@ def parse_ytdlp_media(url):
             }
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
+            info = ydl.extract_info(clean_target_url, download=False)
             title = info.get('title', 'Video')
             author = info.get('uploader') or info.get('uploader_id') or 'Media Creator'
             cover = info.get('thumbnail', '')
@@ -81,7 +101,7 @@ def parse_ytdlp_media(url):
                     video_url = formats_with_url[-1]['url']
 
             if video_url:
-                print(f" -> yt-dlp Engine THÀNH CÔNG cho {url[:40]}!")
+                print(f" -> yt-dlp Engine THÀNH CÔNG cho {clean_target_url[:40]}!")
                 return {
                     "success": True,
                     "data": {
@@ -107,7 +127,7 @@ def parse_instagram_fallback(url):
     """Bóc tách dự phòng cho Instagram Reel"""
     try:
         headers = {'User-Agent': MOBILE_UA}
-        clean_url = url.replace('/reels/', '/reel/')
+        clean_url = clean_instagram_url(url)
         r = session.get(clean_url, headers=headers, timeout=8)
         # Search for og:video
         og_video = re.search(r'property="og:video"\s+content="([^"]+)"', r.text) or re.search(r'content="([^"]+)"\s+property="og:video"', r.text)
