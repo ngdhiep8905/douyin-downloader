@@ -21,7 +21,9 @@ def extract_url(text):
     """Trích xuất URL từ bất kỳ đoạn văn bản nào"""
     match = re.search(r'https?://[^\s]+', text)
     if match:
-        return match.group(0).strip()
+        url = match.group(0).strip()
+        # Chuẩn hóa link Instagram /reels/ -> /reel/
+        return url.replace('/reels/', '/reel/')
     return text.strip()
 
 def extract_video_id(final_url):
@@ -48,7 +50,7 @@ def init_douyin_session():
         print("Lỗi tạo ttwid cookie:", e)
 
 def parse_ytdlp_media(url):
-    """Bóc tách video đa nền tảng (YouTube Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
+    """Bóc tách video đa nền tảng (YouTube Watch/Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
     if not HAS_YTDLP:
         return None
     try:
@@ -57,6 +59,7 @@ def parse_ytdlp_media(url):
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
+            'noplaylist': True,  # Bỏ qua toàn bộ danh sách phát playlist để xử lý video đơn trong 1-2 giây
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'extractor_args': {
                 'youtube': {
@@ -106,7 +109,8 @@ def parse_instagram_fallback(url):
     """Bóc tách dự phòng cho Instagram Reel"""
     try:
         headers = {'User-Agent': MOBILE_UA}
-        r = session.get(url, headers=headers, timeout=8)
+        clean_url = url.replace('/reels/', '/reel/')
+        r = session.get(clean_url, headers=headers, timeout=8)
         # Search for og:video
         og_video = re.search(r'property="og:video"\s+content="([^"]+)"', r.text) or re.search(r'content="([^"]+)"\s+property="og:video"', r.text)
         og_title = re.search(r'property="og:title"\s+content="([^"]+)"', r.text)
