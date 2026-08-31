@@ -82,13 +82,9 @@ def parse_ytdlp_media(url):
             'no_warnings': True,
             'nocheckcertificate': True,
             'noplaylist': True,
-            'http_headers': {
-                'User-Agent': DESKTOP_UA,
-                'Cookie': 'VISITOR_INFO1_LIVE=q-X3zK18s4k; PREF=f2=800000; YSC=a81Xk9z0p8Q'
-            },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'ios'],
+                    'player_client': ['android_vr', 'web_embedded'],
                 }
             }
         }
