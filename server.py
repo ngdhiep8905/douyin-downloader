@@ -27,10 +27,10 @@ def extract_url(text):
     return text.strip()
 
 def clean_youtube_url(url):
-    """Chuẩn hóa đường dẫn YouTube sang dạng Embed để vượt qua tất cả kiểm tra Bot/Sign-in của YouTube"""
+    """Chuẩn hóa đường dẫn YouTube (Watch/Shorts/Embed) về định dạng watch chuẩn"""
     match = re.search(r'(?:v=|\/|shorts\/|embed\/)([a-zA-Z0-9_-]{11})', url)
     if match:
-        return f"https://www.youtube.com/embed/{match.group(1)}"
+        return f"https://www.youtube.com/watch?v={match.group(1)}"
     return url
 
 def clean_instagram_url(url):
@@ -81,7 +81,12 @@ def parse_ytdlp_media(url):
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            'noplaylist': True
+            'noplaylist': True,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['ios', 'android'],
+                }
+            }
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(clean_target_url, download=False)
