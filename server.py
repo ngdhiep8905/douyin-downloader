@@ -1,6 +1,7 @@
 import json
 import re
 import os
+import time
 import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import requests
@@ -62,6 +63,53 @@ def init_douyin_session():
         session.post(reg_url, json=payload, headers=headers, timeout=5)
     except Exception as e:
         print("Lỗi tạo ttwid cookie:", e)
+
+def parse_youtube_fallback(url):
+    """Bóc tách dự phòng cho YouTube Shorts / Watch khi bị chặn IP máy chủ"""
+    match = re.search(r'(?:v=|\/|shorts\/|embed\/)([a-zA-Z0-9_-]{11})', url)
+    if not match:
+        return None
+    video_id = match.group(1)
+    
+    try:
+        headers = {'User-Agent': DESKTOP_UA, 'Accept': 'application/json'}
+        api_url = f"https://loader.to/ajax/download.php?start=1&end=1&format=720&url=https://www.youtube.com/watch?v={video_id}"
+        r = session.get(api_url, headers=headers, timeout=6)
+        if r.status_code == 200:
+            js = r.json()
+            job_id = js.get('id')
+            title = js.get('title', 'YouTube Video')
+            
+            # Poll progress up to 4 times
+            d_url = None
+            if job_id:
+                for _ in range(4):
+                    time.sleep(1.0)
+                    r_p = session.get(f"https://loader.to/ajax/progress.php?id={job_id}", headers=headers, timeout=5)
+                    if r_p.status_code == 200:
+                        js_p = r_p.json()
+                        if js_p.get('download_url'):
+                            d_url = js_p.get('download_url')
+                            break
+
+            # Nếu có link hoặc tiêu đề chuẩn, trả về thành công
+            if title and title != 'YouTube Video':
+                print(f" -> YouTube Fallback Engine THÀNH CÔNG cho {video_id}!")
+                return {
+                    "success": True,
+                    "data": {
+                        "id": video_id,
+                        "title": title,
+                        "author": {"name": "YouTube Creator", "avatar": ""},
+                        "coverUrl": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
+                        "videoUrl": d_url if d_url else f"https://www.youtube.com/watch?v={video_id}",
+                        "musicUrl": "",
+                        "statistics": {"digg_count": 0, "comment_count": 0, "share_count": 0}
+                    }
+                }
+    except Exception as e:
+        print("Lỗi YouTube Fallback Engine:", e)
+    return None
 
 def parse_ytdlp_media(url):
     """Bóc tách video đa nền tảng (YouTube Watch/Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
@@ -291,6 +339,11 @@ def parse_douyin_or_tiktok_video(raw_input):
     result_ytdlp, err_ytdlp = parse_ytdlp_media(final_url)
     if result_ytdlp:
         return result_ytdlp
+
+    if is_youtube:
+        result_yt_fb = parse_youtube_fallback(final_url)
+        if result_yt_fb:
+            return result_yt_fb
 
     if is_instagram:
         result_ig = parse_instagram_fallback(final_url)
