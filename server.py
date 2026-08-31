@@ -86,6 +86,11 @@ def parse_ytdlp_media(url):
             'no_warnings': True,
             'nocheckcertificate': True,
             'noplaylist': True,
+            'http_headers': {
+                'User-Agent': DESKTOP_UA,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5'
+            },
             'extractor_args': {
                 'youtube': {
                     'player_client': ['android_vr'],
