@@ -91,7 +91,7 @@ def parse_ytdlp_media(url):
             },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android_vr', 'tv_embedded', 'android'],
+                    'player_client': ['android_vr'],
                 }
             }
         }
