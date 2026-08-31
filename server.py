@@ -27,14 +27,10 @@ def extract_url(text):
     return text.strip()
 
 def clean_youtube_url(url):
-    """Chuẩn hóa đường dẫn YouTube (giữ nguyên /shorts/ cho Shorts)"""
-    shorts_match = re.search(r'shorts/([a-zA-Z0-9_-]{11})', url)
-    if shorts_match:
-        return f"https://www.youtube.com/shorts/{shorts_match.group(1)}"
-
-    match = re.search(r'(?:v=|\/)([a-zA-Z0-9_-]{11})', url)
+    """Chuẩn hóa đường dẫn YouTube sang dạng Embed để vượt qua tất cả kiểm tra Bot/Sign-in của YouTube"""
+    match = re.search(r'(?:v=|\/|shorts\/|embed\/)([a-zA-Z0-9_-]{11})', url)
     if match:
-        return f"https://www.youtube.com/watch?v={match.group(1)}"
+        return f"https://www.youtube.com/embed/{match.group(1)}"
     return url
 
 def clean_instagram_url(url):
@@ -85,12 +81,7 @@ def parse_ytdlp_media(url):
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
-            'noplaylist': True,
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['tv', 'android_music', 'android'],
-                }
-            }
+            'noplaylist': True
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(clean_target_url, download=False)
