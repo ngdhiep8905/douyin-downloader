@@ -27,8 +27,12 @@ def extract_url(text):
     return text.strip()
 
 def clean_youtube_url(url):
-    """Chuẩn hóa đường dẫn YouTube để kích hoạt đúng Extractor Youtube của yt-dlp"""
-    match = re.search(r'(?:v=|\/|shorts\/)([a-zA-Z0-9_-]{11})', url)
+    """Chuẩn hóa đường dẫn YouTube (giữ nguyên /shorts/ cho Shorts)"""
+    shorts_match = re.search(r'shorts/([a-zA-Z0-9_-]{11})', url)
+    if shorts_match:
+        return f"https://www.youtube.com/shorts/{shorts_match.group(1)}"
+
+    match = re.search(r'(?:v=|\/)([a-zA-Z0-9_-]{11})', url)
     if match:
         return f"https://www.youtube.com/watch?v={match.group(1)}"
     return url
