@@ -47,18 +47,6 @@ def extract_video_id(final_url):
         return match.group(1)
     return None
 
-def get_free_proxy():
-    """Lấy Proxy miễn phí để vượt rào chắn IP máy chủ đám mây"""
-    try:
-        r = requests.get('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=2000&country=all&ssl=all&anonymity=all', timeout=3)
-        if r.status_code == 200:
-            proxies = [p.strip() for p in r.text.splitlines() if p.strip()]
-            if proxies:
-                return f"http://{proxies[0]}"
-    except Exception as e:
-        print("Lỗi lấy proxy dự phòng:", e)
-    return None
-
 def init_douyin_session():
     """Khởi tạo Cookie ttwid chuẩn từ Bytedance cho session"""
     try:
@@ -75,7 +63,7 @@ def init_douyin_session():
     except Exception as e:
         print("Lỗi tạo ttwid cookie:", e)
 
-def parse_ytdlp_media(url, use_proxy=False):
+def parse_ytdlp_media(url):
     """Bóc tách video đa nền tảng (YouTube Watch/Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
     if not HAS_YTDLP:
         return None, f"yt-dlp chưa được cài đặt: {YTDLP_ERR_MSG}"
@@ -94,6 +82,8 @@ def parse_ytdlp_media(url, use_proxy=False):
             'no_warnings': True,
             'nocheckcertificate': True,
             'noplaylist': True,
+            'youtube_include_dash_manifest': False,
+            'youtube_include_hls_manifest': False,
             'http_headers': {
                 'User-Agent': DESKTOP_UA,
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -101,17 +91,10 @@ def parse_ytdlp_media(url, use_proxy=False):
             },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android_vr'],
+                    'player_client': ['android_vr', 'tv_embedded', 'android'],
                 }
             }
         }
-        if use_proxy:
-            proxy_url = get_free_proxy()
-            if proxy_url:
-                print(f" -> Đang thử lại qua Proxy: {proxy_url}")
-                ydl_opts['proxy'] = proxy_url
-                ydl_opts['socket_timeout'] = 6
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(clean_target_url, download=False)
             title = info.get('title', 'Video')
@@ -144,10 +127,6 @@ def parse_ytdlp_media(url, use_proxy=False):
                 }, None
     except Exception as e:
         print("Lỗi yt-dlp Engine:", e)
-        # Nếu chưa thử qua Proxy và gặp lỗi bot/sign in, thử lại bằng Proxy dự phòng
-        if not use_proxy and ('sign in' in str(e).lower() or '429' in str(e).lower() or 'bot' in str(e).lower()):
-            print(" -> Đang kích hoạt Proxy dự phòng...")
-            return parse_ytdlp_media(url, use_proxy=True)
         return None, str(e)
     return None, "Không tìm thấy đường dẫn video phù hợp"
 
