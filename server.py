@@ -88,7 +88,7 @@ def parse_ytdlp_media(url):
             'noplaylist': True,
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'ios', 'mweb'],
+                    'player_client': ['android'],
                 }
             }
         }
