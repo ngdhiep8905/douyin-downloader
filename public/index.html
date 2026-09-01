@@ -4,12 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
-      Tải Video Douyin & TikTok Không Logo (Watermark) Miễn Phí | SaveTik
+      SaveTik - Tải Video TikTok, Douyin, YouTube Shorts, Instagram Reels Không Logo HD
     </title>
     <meta
       name="description"
-      content="Công cụ tải video Douyin & TikTok không chứa logo, chất lượng HD sắc nét, tải nhạc MP3 miễn phí và nhanh chóng."
+      content="Công cụ tải video đa nền tảng miễn phí 100%: Tải video TikTok, Douyin không dính logo watermark, YouTube Shorts HD, Instagram Reels & Facebook Watch, tách nhạc MP3 cực nhanh."
     />
+    <meta name="keywords" content="savetik, tải video tiktok, tải video douyin, không logo, watermark, tải youtube shorts, tải instagram reels, snap tiktok, douyin downloader" />
+    <meta property="og:title" content="SaveTik - Tải Video Đa Nền Tảng Không Logo HD" />
+    <meta property="og:description" content="Tải video TikTok, Douyin, YouTube Shorts, Instagram Reels sắc nét HD, không logo, tách nhạc MP3 miễn phí." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://savetik.click/" />
+
     <!-- Favicon Icon cho Google Search & Trình Duyệt -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
@@ -20,6 +26,25 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+
+    <!-- Google WebApp Schema JSON-LD cho SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SaveTik",
+      "url": "https://savetik.click/",
+      "description": "Công cụ tải video TikTok, Douyin, YouTube Shorts, Instagram Reels không logo HD miễn phí.",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "VND"
+      }
+    }
+    </script>
+
     <style>
       .gradient-bg {
         background: linear-gradient(
@@ -33,13 +58,20 @@
         background: linear-gradient(
           90deg,
           #fe2c55 0%,
-          #ff0050 50%,
-          #25f4ee 100%
+          #ff0050 35%,
+          #8b5cf6 70%,
+          #06b6d4 100%
         );
       }
-      .ad-slot-box {
-        border: 2px dashed #475569;
-        background-color: rgba(30, 41, 59, 0.5);
+      .platform-badge {
+        background-color: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(71, 85, 105, 0.6);
+        backdrop-filter: blur(8px);
+        transition: all 0.25s ease;
+      }
+      .platform-badge:hover {
+        border-color: #f43f5e;
+        transform: translateY(-2px);
       }
     </style>
   </head>
@@ -51,29 +83,30 @@
       <div
         class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between"
       >
-        <div class="flex items-center space-x-3">
+        <a href="/" class="flex items-center space-x-3 group">
           <div
-            class="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center font-bold text-white text-xl shadow-lg"
+            class="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center font-bold text-white text-xl shadow-lg group-hover:scale-105 transition"
           >
             <i class="fas fa-cloud-arrow-down"></i>
           </div>
           <div>
-            <h1 class="text-xl font-bold text-white tracking-wide">
+            <h1 class="text-xl font-bold text-white tracking-wide flex items-center gap-1">
               Save<span class="text-rose-500">Tik</span>
+              <span class="text-[10px] bg-rose-500/20 text-rose-400 font-semibold px-2 py-0.5 rounded-full border border-rose-500/30">All-in-One</span>
             </h1>
-            <p class="text-xs text-slate-400">Tải Video Douyin & TikTok HD</p>
+            <p class="text-xs text-slate-400">Tải Video Đa Nền Tảng HD</p>
           </div>
-        </div>
+        </a>
 
         <nav
           class="hidden md:flex items-center space-x-5 text-sm font-medium text-slate-300"
         >
           <a href="/" class="hover:text-rose-400 transition">Trang Chủ</a>
-          <a href="/tiktok" class="hover:text-rose-400 transition flex items-center gap-1"><i class="fab fa-tiktok text-xs text-rose-400"></i> TikTok</a>
-          <a href="/douyin" class="hover:text-rose-400 transition flex items-center gap-1"><i class="fas fa-video text-xs text-cyan-400"></i> Douyin</a>
-          <a href="/facebook" class="hover:text-rose-400 transition flex items-center gap-1"><i class="fab fa-facebook text-xs text-blue-400"></i> Facebook</a>
-          <a href="/instagram" class="hover:text-rose-400 transition flex items-center gap-1"><i class="fab fa-instagram text-xs text-pink-400"></i> Instagram</a>
-          <a href="/youtube" class="hover:text-rose-400 transition flex items-center gap-1"><i class="fab fa-youtube text-xs text-red-500"></i> YouTube</a>
+          <a href="/tiktok" class="hover:text-rose-400 transition flex items-center gap-1.5"><i class="fab fa-tiktok text-xs text-rose-400"></i> TikTok</a>
+          <a href="/douyin" class="hover:text-rose-400 transition flex items-center gap-1.5"><i class="fas fa-video text-xs text-cyan-400"></i> Douyin</a>
+          <a href="/youtube" class="hover:text-rose-400 transition flex items-center gap-1.5"><i class="fab fa-youtube text-xs text-red-500"></i> YouTube</a>
+          <a href="/instagram" class="hover:text-rose-400 transition flex items-center gap-1.5"><i class="fab fa-instagram text-xs text-pink-400"></i> Instagram</a>
+          <a href="/facebook" class="hover:text-rose-400 transition flex items-center gap-1.5"><i class="fab fa-facebook text-xs text-blue-400"></i> Facebook</a>
         </nav>
       </div>
     </header>
@@ -91,17 +124,35 @@
     <!-- MAIN HERO SECTION -->
     <main class="flex-grow max-w-4xl mx-auto px-4 py-8 w-full" id="downloader">
       <div class="text-center mb-8">
-        <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-3">
-          Tải Video Douyin & TikTok
+        <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-3 leading-tight">
+          Tải Video Đa Nền Tảng
           <span
-            class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400"
+            class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-purple-400 to-cyan-400"
             >Không Logo HD</span
           >
         </h2>
-        <p class="text-slate-300 text-base md:text-lg max-w-2xl mx-auto">
-          Công cụ miễn phí giúp bạn tải xuống video Douyin & TikTok chất lượng cao, không
-          dính hình mờ (watermark) và tách nhạc MP3 nhanh chóng.
+        <p class="text-slate-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+          Công cụ miễn phí hỗ trợ tải video <strong>TikTok, Douyin, YouTube Shorts, Instagram Reels & Facebook</strong> chất lượng cao HD, không dính logo watermark và tách nhạc MP3 cực nhanh.
         </p>
+
+        <!-- SUPPORTED PLATFORM BADGES -->
+        <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3 mt-6">
+          <a href="/tiktok" class="platform-badge px-3 py-1.5 rounded-xl text-xs md:text-sm text-slate-200 flex items-center gap-2">
+            <i class="fab fa-tiktok text-rose-400"></i> TikTok
+          </a>
+          <a href="/douyin" class="platform-badge px-3 py-1.5 rounded-xl text-xs md:text-sm text-slate-200 flex items-center gap-2">
+            <i class="fas fa-video text-cyan-400"></i> Douyin (抖音)
+          </a>
+          <a href="/youtube" class="platform-badge px-3 py-1.5 rounded-xl text-xs md:text-sm text-slate-200 flex items-center gap-2">
+            <i class="fab fa-youtube text-red-500"></i> YouTube Shorts
+          </a>
+          <a href="/instagram" class="platform-badge px-3 py-1.5 rounded-xl text-xs md:text-sm text-slate-200 flex items-center gap-2">
+            <i class="fab fa-instagram text-pink-400"></i> Instagram Reels
+          </a>
+          <a href="/facebook" class="platform-badge px-3 py-1.5 rounded-xl text-xs md:text-sm text-slate-200 flex items-center gap-2">
+            <i class="fab fa-facebook text-blue-400"></i> Facebook
+          </a>
+        </div>
       </div>
 
       <!-- SEARCH INPUT FORM -->
@@ -118,7 +169,7 @@
             <input
               type="text"
               id="videoUrl"
-              placeholder="Dán link Douyin hoặc TikTok vào đây (VD: https://vt.tiktok.com/...)"
+              placeholder="Dán link TikTok, Douyin, YouTube Shorts, Instagram..."
               required
               class="w-full pl-11 pr-24 py-4 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition text-sm md:text-base"
             />
@@ -167,7 +218,7 @@
           class="inline-block w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"
         ></div>
         <p class="mt-4 text-slate-300 font-medium">
-          Đang xử lý & bóc tách video Douyin...
+          Đang xử lý & bóc tách video HD...
         </p>
       </div>
 
@@ -268,14 +319,13 @@
         <div class="bg-slate-800/50 border border-slate-700/60 p-6 rounded-2xl">
           <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <i class="fas fa-circle-question text-rose-500"></i>
-            Hướng dẫn tải video Douyin không có logo
+            Hướng dẫn tải video không dính logo watermark
           </h3>
           <ol
             class="list-decimal list-inside space-y-3 text-slate-300 text-sm leading-relaxed"
           >
             <li>
-              Mở ứng dụng <strong>Douyin (抖音)</strong> trên điện thoại hoặc
-              máy tính của bạn.
+              Mở ứng dụng <strong>TikTok, Douyin, YouTube hoặc Instagram</strong> trên điện thoại hoặc máy tính của bạn.
             </li>
             <li>
               Chọn video bạn muốn tải xuống, bấm vào biểu tượng
@@ -283,18 +333,17 @@
               <strong>Sao chép liên kết (Copy Link)</strong>.
             </li>
             <li>
-              Dán đoạn đường dẫn vừa sao chép vào ô tìm kiếm ở trên và ấn nút
+              Dán đoạn liên kết vừa sao chép vào ô tìm kiếm ở trên và ấn nút
               <strong>Tải Ngay</strong>.
             </li>
             <li>
-              Chọn nút <strong>Tải Video HD (Không Logo)</strong> để lưu video
-              về thiết bị của bạn.
+              Chọn nút <strong>Tải Video HD (Không Logo)</strong> hoặc <strong>Tải Nhạc MP3</strong> để lưu về thiết bị.
             </li>
           </ol>
         </div>
 
         <!-- FEATURES -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="features">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="features">
           <div
             class="bg-slate-800/50 border border-slate-700/60 p-5 rounded-xl text-center"
           >
@@ -317,9 +366,23 @@
             >
               <i class="fas fa-shield-halved"></i>
             </div>
-            <h4 class="font-bold text-white mb-1">Miễn Phí 100%</h4>
+            <h4 class="font-bold text-white mb-1">Không Logo HD</h4>
             <p class="text-xs text-slate-400">
-              Không giới hạn số lượt tải, không yêu cầu đăng ký tài khoản.
+              Video gốc sắc nét 1080p, hoàn toàn sạch logo mờ.
+            </p>
+          </div>
+
+          <div
+            class="bg-slate-800/50 border border-slate-700/60 p-5 rounded-xl text-center"
+          >
+            <div
+              class="w-12 h-12 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl mx-auto mb-3"
+            >
+              <i class="fas fa-music"></i>
+            </div>
+            <h4 class="font-bold text-white mb-1">Tách Nhạc MP3</h4>
+            <p class="text-xs text-slate-400">
+              Trích xuất bài hát âm thanh gốc chuẩn 320kbps.
             </p>
           </div>
 
@@ -331,9 +394,9 @@
             >
               <i class="fas fa-mobile-screen"></i>
             </div>
-            <h4 class="font-bold text-white mb-1">Tương Thích Mọi Thiết Bị</h4>
+            <h4 class="font-bold text-white mb-1">Mọi Thiết Bị</h4>
             <p class="text-xs text-slate-400">
-              Hỗ trợ mượt mà trên iPhone, Android, PC, Laptop và Tablet.
+              Dùng mượt mà trên iPhone, Android, PC, Laptop và Tablet.
             </p>
           </div>
         </div>
@@ -351,10 +414,9 @@
       class="border-t border-slate-800 bg-slate-900 py-6 mt-12 text-center text-slate-500 text-xs"
     >
       <div class="max-w-4xl mx-auto px-4 space-y-2">
-        <p>&copy; 2026 VideoSave. All rights reserved.</p>
+        <p>&copy; 2026 SaveTik. All rights reserved.</p>
         <p class="text-slate-600">
-          Công cụ hỗ trợ tải xuống media cá nhân trực tuyến. Không liên kết với
-          bên thứ ba.
+          Công cụ hỗ trợ tải xuống media đa nền tảng cá nhân trực tuyến. Không liên kết với bên thứ ba.
         </p>
       </div>
     </footer>
