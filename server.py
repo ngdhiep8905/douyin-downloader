@@ -225,6 +225,9 @@ def parse_tikwm_media(final_url):
             js = tik_res.json()
             if js.get('code') == 0 and js.get('data'):
                 d = js['data']
+                v_play = d.get('play', '')
+                if v_play and not v_play.startswith('http'):
+                    v_play = f"https://www.tikwm.com{v_play}"
                 print(" -> TikWM Engine THÀNH CÔNG!")
                 return {
                     "success": True,
@@ -236,7 +239,7 @@ def parse_tikwm_media(final_url):
                             "avatar": d.get('author', {}).get('avatar', '')
                         },
                         "coverUrl": d.get('cover', ''),
-                        "videoUrl": d.get('play', ''),
+                        "videoUrl": v_play,
                         "musicUrl": d.get('music', ''),
                         "statistics": {
                             "digg_count": d.get('digg_count', 0),
@@ -258,6 +261,7 @@ def parse_douyin_or_tiktok_video(raw_input):
     is_youtube = 'youtube.com' in url_lower or 'youtu.be' in url_lower
     is_instagram = 'instagram.com' in url_lower or 'instagr.am' in url_lower
     is_douyin = 'douyin.com' in url_lower
+    is_tiktok = 'tiktok.com' in url_lower or 'vt.tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower
 
     # CHỈ GIẢI MÃ REDIRECT KHI LÀ SHORT LINK (Bỏ qua YouTube/Instagram để tránh dính HTTP 429)
     final_url = input_url
@@ -335,7 +339,13 @@ def parse_douyin_or_tiktok_video(raw_input):
         except Exception as e_main:
             print("Lỗi Engine Douyin chính:", e_main)
 
-    # ===== DỰ PHÒNG CHUNG VÀ CÁC NỀN TẢNG KHÁC (YouTube/Facebook/Instagram/TikTok) =====
+    # ===== ENGINE CHÍNH CHO TIKTOK (Ưu tiên TikWM chuyên dụng) =====
+    if is_tiktok:
+        result_tik = parse_tikwm_media(final_url)
+        if result_tik:
+            return result_tik
+
+    # ===== DỰ PHÒNG CHUNG (yt-dlp) =====
     result_ytdlp, err_ytdlp = parse_ytdlp_media(final_url)
     if result_ytdlp:
         return result_ytdlp
@@ -349,10 +359,6 @@ def parse_douyin_or_tiktok_video(raw_input):
         result_ig = parse_instagram_fallback(final_url)
         if result_ig:
             return result_ig
-
-    result_tik = parse_tikwm_media(final_url)
-    if result_tik:
-        return result_tik
 
     return {
         "success": False,
@@ -405,7 +411,16 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
                 return
 
             try:
-                headers = {'User-Agent': DESKTOP_UA, 'Referer': 'https://www.douyin.com/'}
+                url_lower = file_url.lower()
+                referer = 'https://www.douyin.com/'
+                if 'tiktok' in url_lower or 'tikwm' in url_lower:
+                    referer = 'https://www.tiktok.com/'
+                elif 'youtube' in url_lower or 'googlevideo' in url_lower or 'loader.to' in url_lower:
+                    referer = 'https://www.youtube.com/'
+                elif 'instagram' in url_lower or 'cdninstagram' in url_lower:
+                    referer = 'https://www.instagram.com/'
+
+                headers = {'User-Agent': DESKTOP_UA, 'Referer': referer}
                 req = session.get(file_url, headers=headers, stream=True, timeout=15)
                 
                 self.send_response(200)
