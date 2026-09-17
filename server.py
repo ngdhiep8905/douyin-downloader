@@ -28,8 +28,8 @@ def extract_url(text):
     return text.strip()
 
 def clean_youtube_url(url):
-    """Chuẩn hóa mọi đường dẫn YouTube (Watch/Shorts/Embed) về dạng watch chuẩn"""
-    match = re.search(r'(?:v=|\/|shorts\/|embed\/)([a-zA-Z0-9_-]{11})', url)
+    """Chuẩn hóa mọi đường dẫn YouTube (Watch/Shorts/Embed/youtu.be) về dạng watch chuẩn"""
+    match = re.search(r'(?:v=|\/shorts\/|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})', url)
     if match:
         return f"https://www.youtube.com/watch?v={match.group(1)}"
     return url
@@ -66,7 +66,7 @@ def init_douyin_session():
 
 def parse_youtube_fallback(url):
     """Bóc tách dự phòng cho YouTube Shorts / Watch khi bị chặn IP máy chủ"""
-    match = re.search(r'(?:v=|\/|shorts\/|embed\/)([a-zA-Z0-9_-]{11})', url)
+    match = re.search(r'(?:v=|\/shorts\/|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})', url)
     if not match:
         return None
     video_id = match.group(1)
@@ -139,7 +139,7 @@ def parse_ytdlp_media(url):
             },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android_vr'],
+                    'player_client': ['android_vr', 'tv_embedded', 'android', 'mweb', 'ios'],
                 }
             }
         }
@@ -345,15 +345,20 @@ def parse_douyin_or_tiktok_video(raw_input):
         if result_tik:
             return result_tik
 
+    # ===== ENGINE CHO YOUTUBE (CHUYÊN DỤNG CHO CẢ SHORTS VÀ YOUTUBE THƯỜNG) =====
+    if is_youtube:
+        result_yt, err_yt = parse_ytdlp_media(final_url)
+        if result_yt:
+            return result_yt
+
+        result_yt_fb = parse_youtube_fallback(final_url)
+        if result_yt_fb:
+            return result_yt_fb
+
     # ===== DỰ PHÒNG CHUNG (yt-dlp) =====
     result_ytdlp, err_ytdlp = parse_ytdlp_media(final_url)
     if result_ytdlp:
         return result_ytdlp
-
-    if is_youtube:
-        result_yt_fb = parse_youtube_fallback(final_url)
-        if result_yt_fb:
-            return result_yt_fb
 
     if is_instagram:
         result_ig = parse_instagram_fallback(final_url)
