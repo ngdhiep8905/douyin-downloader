@@ -35,10 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Instagram Reels chất lượng cao, không dính logo và tách nhạc MP3 nhanh chóng.';
       if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Instagram Reels vào đây (VD: https://www.instagram.com/reel/...)';
     } else if (path.includes('youtube')) {
-      document.title = 'Tải Video YouTube Shorts HD Miễn Phí | SaveTik';
-      if (heroHeading) heroHeading.innerHTML = 'Tải Video YouTube Shorts <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
-      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video YouTube Shorts chất lượng cao, không dính logo và tách nhạc MP3 nhanh chóng.';
-      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link YouTube Shorts vào đây (VD: https://www.youtube.com/shorts/...)';
+      document.title = 'Tải Video YouTube Shorts & Watch HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video YouTube <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Shorts & Watch HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video YouTube Shorts & Watch chất lượng cao, không dính logo và tách nhạc MP3 nhanh chóng.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link YouTube vào đây (VD: https://www.youtube.com/watch?v=... hoặc Shorts)';
     } else if (path.includes('tiktok')) {
       document.title = 'Tải Video TikTok Không Logo (Watermark) Miễn Phí HD | SaveTik';
       if (heroHeading) heroHeading.innerHTML = 'Tải Video TikTok <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
@@ -49,6 +49,21 @@ document.addEventListener('DOMContentLoaded', () => {
       if (heroHeading) heroHeading.innerHTML = 'Tải Video Douyin <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
       if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Douyin chất lượng cao, không dính hình mờ (watermark) và tách nhạc MP3 nhanh chóng.';
       if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Douyin vào đây (VD: https://v.douyin.com/...)';
+    } else if (path.includes('twitter') || path.includes('x.com')) {
+      document.title = 'Tải Video Twitter / X HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Twitter / X <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Twitter / X chất lượng cao, cực nhanh và không giới hạn.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Twitter / X vào đây (VD: https://x.com/.../status/...)';
+    } else if (path.includes('capcut')) {
+      document.title = 'Tải Video CapCut Không Logo Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video CapCut <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Watermark HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải video mẫu CapCut không chứa logo mờ chất lượng cao.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link CapCut vào đây (VD: https://www.capcut.com/t/...)';
+    } else if (path.includes('pinterest')) {
+      document.title = 'Tải Video Pinterest HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Pinterest <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Pinterest Pins chất lượng cao sắc nét.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Pinterest vào đây (VD: https://pin.it/... hoặc pinterest.com)';
     }
   }
 

@@ -112,7 +112,7 @@ def parse_youtube_fallback(url):
     return None
 
 def parse_ytdlp_media(url):
-    """Bóc tách video đa nền tảng (YouTube Watch/Shorts, Facebook, Instagram, TikTok...) bằng yt-dlp"""
+    """Bóc tách video đa nền tảng (YouTube, Facebook, Instagram, TikTok, Twitter/X, Pinterest, CapCut, Threads, Reddit...) bằng yt-dlp"""
     if not HAS_YTDLP:
         return None, f"yt-dlp chưa được cài đặt: {YTDLP_ERR_MSG}"
     
@@ -146,7 +146,7 @@ def parse_ytdlp_media(url):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(clean_target_url, download=False)
             title = info.get('title', 'Video')
-            author = info.get('uploader') or info.get('uploader_id') or 'Media Creator'
+            author = info.get('uploader') or info.get('uploader_id') or info.get('creator') or 'Media Creator'
             cover = info.get('thumbnail', '')
             
             video_url = info.get('url')
@@ -263,9 +263,9 @@ def parse_douyin_or_tiktok_video(raw_input):
     is_douyin = 'douyin.com' in url_lower
     is_tiktok = 'tiktok.com' in url_lower or 'vt.tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower
 
-    # CHỈ GIẢI MÃ REDIRECT KHI LÀ SHORT LINK (Bỏ qua YouTube/Instagram để tránh dính HTTP 429)
+    # GIẢI MÃ REDIRECT CHO CÁC SHORTLINK (bỏ qua YouTube/Instagram để tránh HTTP 429)
     final_url = input_url
-    if not (is_youtube or is_instagram) and ('v.douyin.com' in url_lower or 'vt.tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower):
+    if not (is_youtube or is_instagram) and ('v.douyin.com' in url_lower or 'vt.tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower or 'pin.it' in url_lower or 't.co' in url_lower):
         try:
             res = session.get(input_url, headers={'User-Agent': MOBILE_UA}, allow_redirects=True, timeout=8)
             final_url = res.url
@@ -355,7 +355,7 @@ def parse_douyin_or_tiktok_video(raw_input):
         if result_yt_fb:
             return result_yt_fb
 
-    # ===== DỰ PHÒNG CHUNG (yt-dlp) =====
+    # ===== DỰ PHÒNG CHUNG (yt-dlp ĐA NỀN TẢNG: Twitter, Pinterest, CapCut, Threads, Reddit...) =====
     result_ytdlp, err_ytdlp = parse_ytdlp_media(final_url)
     if result_ytdlp:
         return result_ytdlp
@@ -408,7 +408,7 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
         path = parsed_url.path.rstrip('/')
 
         # Điều hướng các đường dẫn SEO trang con về index.html
-        if path in ['/tiktok', '/douyin', '/facebook', '/instagram', '/youtube']:
+        if path in ['/tiktok', '/douyin', '/facebook', '/instagram', '/youtube', '/twitter', '/capcut', '/pinterest', '/threads', '/reddit']:
             self.path = '/index.html'
             return super().do_GET()
 
@@ -431,6 +431,10 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
                     referer = 'https://www.youtube.com/'
                 elif 'instagram' in url_lower or 'cdninstagram' in url_lower:
                     referer = 'https://www.instagram.com/'
+                elif 'twitter' in url_lower or 'x.com' in url_lower or 'twimg' in url_lower:
+                    referer = 'https://twitter.com/'
+                elif 'pinterest' in url_lower or 'pinimg' in url_lower:
+                    referer = 'https://www.pinterest.com/'
 
                 headers = {'User-Agent': DESKTOP_UA, 'Referer': referer}
                 req = session.get(file_url, headers=headers, stream=True, timeout=15)
