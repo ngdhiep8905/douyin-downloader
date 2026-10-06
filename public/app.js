@@ -24,7 +24,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroHeading = document.querySelector('#downloader h2');
     const heroSubtext = document.querySelector('#downloader p');
 
-    if (path.includes('facebook')) {
+    if (path.includes('bilibili')) {
+      document.title = 'Tải Video Bilibili (B Trạm) HD Không Logo Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Bilibili (哔哩哔哩) <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Bilibili (B Trạm Trung Quốc) chất lượng cao, không dính logo mờ và tách nhạc MP3 nhanh chóng.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Bilibili vào đây (VD: https://www.bilibili.com/video/BV... hoặc b23.tv)';
+    } else if (path.includes('xiaohongshu')) {
+      document.title = 'Tải Video Tiểu Hồng Thư (Xiaohongshu) Không Logo HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Tiểu Hồng Thư <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Tiểu Hồng Thư (小红书 - Xiaohongshu) chất lượng cao, không dính watermark.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Tiểu Hồng Thư vào đây (VD: https://xhslink.com/... hoặc xiaohongshu.com)';
+    } else if (path.includes('kuaishou')) {
+      document.title = 'Tải Video Kuaishou (Khóa Thủ) Không Logo HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Kuaishou (快手) <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Khóa Thủ Kuaishou Trung Quốc không dính logo watermark.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Kuaishou vào đây (VD: https://v.kuaishou.com/...)';
+    } else if (path.includes('weibo')) {
+      document.title = 'Tải Video Weibo Trung Quốc HD Miễn Phí | SaveTik';
+      if (heroHeading) heroHeading.innerHTML = 'Tải Video Weibo (微博) <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
+      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Weibo Trung Quốc chất lượng cao sắc nét.';
+      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Weibo vào đây (VD: https://weibo.com/...)';
+    } else if (path.includes('facebook')) {
       document.title = 'Tải Video Facebook Reels HD Miễn Phí | SaveTik';
       if (heroHeading) heroHeading.innerHTML = 'Tải Video Facebook Reels <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
       if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Facebook Reels & Watch chất lượng cao, không dính logo và tách nhạc MP3 nhanh chóng.';
@@ -49,21 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (heroHeading) heroHeading.innerHTML = 'Tải Video Douyin <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Logo HD</span>';
       if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Douyin chất lượng cao, không dính hình mờ (watermark) và tách nhạc MP3 nhanh chóng.';
       if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Douyin vào đây (VD: https://v.douyin.com/...)';
-    } else if (path.includes('twitter') || path.includes('x.com')) {
-      document.title = 'Tải Video Twitter / X HD Miễn Phí | SaveTik';
-      if (heroHeading) heroHeading.innerHTML = 'Tải Video Twitter / X <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
-      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Twitter / X chất lượng cao, cực nhanh và không giới hạn.';
-      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Twitter / X vào đây (VD: https://x.com/.../status/...)';
-    } else if (path.includes('capcut')) {
-      document.title = 'Tải Video CapCut Không Logo Miễn Phí | SaveTik';
-      if (heroHeading) heroHeading.innerHTML = 'Tải Video CapCut <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Không Watermark HD</span>';
-      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải video mẫu CapCut không chứa logo mờ chất lượng cao.';
-      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link CapCut vào đây (VD: https://www.capcut.com/t/...)';
-    } else if (path.includes('pinterest')) {
-      document.title = 'Tải Video Pinterest HD Miễn Phí | SaveTik';
-      if (heroHeading) heroHeading.innerHTML = 'Tải Video Pinterest <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-cyan-400">Chất Lượng HD</span>';
-      if (heroSubtext) heroSubtext.textContent = 'Công cụ miễn phí giúp bạn tải xuống video Pinterest Pins chất lượng cao sắc nét.';
-      if (videoUrlInput) videoUrlInput.placeholder = 'Dán link Pinterest vào đây (VD: https://pin.it/... hoặc pinterest.com)';
     }
   }
 

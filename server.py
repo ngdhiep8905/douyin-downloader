@@ -111,12 +111,147 @@ def parse_youtube_fallback(url):
         print("Lỗi YouTube Fallback Engine:", e)
     return None
 
+def parse_xiaohongshu_media(url):
+    """Bóc tách video Tiểu Hồng Thư (Xiaohongshu)"""
+    headers = {
+        'User-Agent': MOBILE_UA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
+    }
+
+    final_url = url
+    if 'xhslink.com' in url.lower():
+        try:
+            r_redir = session.get(url, headers=headers, allow_redirects=True, timeout=8)
+            final_url = r_redir.url
+        except Exception as e:
+            print("Lỗi redirect Xiaohongshu:", e)
+
+    try:
+        r = session.get(final_url, headers=headers, timeout=8)
+        if r.status_code == 200:
+            match = re.search(r'window\.__INITIAL_STATE__\s*=\s*({.+?});?</script>', r.text, re.DOTALL)
+            if match:
+                raw_json = match.group(1).replace('undefined', 'null')
+                js = json.loads(raw_json)
+                note_map = js.get('note', {}).get('noteDetailMap', {})
+                if note_map:
+                    first_key = list(note_map.keys())[0]
+                    note_item = note_map[first_key].get('note', {})
+                    title = note_item.get('title') or note_item.get('desc', 'Xiaohongshu Video')
+                    author = note_item.get('user', {}).get('nickname', 'Xiaohongshu User')
+                    cover = note_item.get('cover', {}).get('url', '')
+                    
+                    video_info = note_item.get('video', {})
+                    v_url = ''
+                    if video_info.get('media', {}).get('stream', {}).get('h264'):
+                        v_url = video_info['media']['stream']['h264'][0].get('masterUrl', '')
+                    elif video_info.get('consumer', {}).get('originVideoKey'):
+                        v_url = f"https://sns-video-bd.xhscdn.com/{video_info['consumer']['originVideoKey']}"
+
+                    if v_url:
+                        print(" -> Xiaohongshu Engine THÀNH CÔNG!")
+                        return {
+                            "success": True,
+                            "data": {
+                                "id": first_key,
+                                "title": title,
+                                "author": {"name": author, "avatar": ""},
+                                "coverUrl": cover,
+                                "videoUrl": v_url,
+                                "musicUrl": "",
+                                "statistics": {"digg_count": 0, "comment_count": 0, "share_count": 0}
+                            }
+                        }
+            
+            v_match = re.search(r'https?://[^\s"\'<>]+?sns-video[^\s"\'<>]*', r.text) or re.search(r'https?://[^\s"\'<>]+?\.mp4[^\s"\'<>]*', r.text)
+            if v_match:
+                v_url = v_match.group(0).replace('\\u002F', '/').replace('\\/', '/')
+                print(" -> Xiaohongshu Fallback Regex THÀNH CÔNG!")
+                return {
+                    "success": True,
+                    "data": {
+                        "id": "xhs",
+                        "title": "Xiaohongshu Video",
+                        "author": {"name": "Xiaohongshu User", "avatar": ""},
+                        "coverUrl": "",
+                        "videoUrl": v_url,
+                        "musicUrl": "",
+                        "statistics": {"digg_count": 0, "comment_count": 0, "share_count": 0}
+                    }
+                }
+    except Exception as e:
+        print("Lỗi Xiaohongshu Engine:", e)
+    return None
+
+def parse_kuaishou_media(url):
+    """Bóc tách video Kuaishou (快手)"""
+    headers = {
+        'User-Agent': MOBILE_UA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
+    }
+
+    final_url = url
+    if 'v.kuaishou.com' in url.lower():
+        try:
+            r_redir = session.get(url, headers=headers, allow_redirects=True, timeout=8)
+            final_url = r_redir.url
+        except Exception as e:
+            print("Lỗi redirect Kuaishou:", e)
+
+    try:
+        r = session.get(final_url, headers=headers, timeout=8)
+        if r.status_code == 200:
+            match = re.search(r'window\.pageData\s*=\s*({.+?});?</script>', r.text, re.DOTALL) or re.search(r'window\.__INITIAL_STATE__\s*=\s*({.+?});?</script>', r.text, re.DOTALL)
+            if match:
+                raw_json = match.group(1).replace('undefined', 'null')
+                js = json.loads(raw_json)
+                photo = js.get('photo', {}) or js.get('video', {}) or js.get('currentWork', {})
+                title = photo.get('caption', 'Kuaishou Video')
+                author = photo.get('userName', 'Kuaishou User')
+                cover = photo.get('coverUrl', '')
+                v_url = photo.get('mainMvUrl') or photo.get('srcNoMark') or photo.get('photoUrl')
+                if v_url:
+                    print(" -> Kuaishou Engine THÀNH CÔNG!")
+                    return {
+                        "success": True,
+                        "data": {
+                            "id": photo.get('photoId', 'kuaishou'),
+                            "title": title,
+                            "author": {"name": author, "avatar": ""},
+                            "coverUrl": cover,
+                            "videoUrl": v_url,
+                            "musicUrl": "",
+                            "statistics": {"digg_count": 0, "comment_count": 0, "share_count": 0}
+                        }
+                    }
+
+            v_match = re.search(r'https?://[^\s"\'<>]+?txmov2\.a\.yximgs\.com[^\s"\'<>]*', r.text) or re.search(r'https?://[^\s"\'<>]+?\.mp4[^\s"\'<>]*', r.text)
+            if v_match:
+                v_url = v_match.group(0).replace('\\u002F', '/').replace('\\/', '/')
+                print(" -> Kuaishou Fallback Regex THÀNH CÔNG!")
+                return {
+                    "success": True,
+                    "data": {
+                        "id": "kuaishou",
+                        "title": "Kuaishou Video",
+                        "author": {"name": "Kuaishou User", "avatar": ""},
+                        "coverUrl": "",
+                        "videoUrl": v_url,
+                        "musicUrl": "",
+                        "statistics": {"digg_count": 0, "comment_count": 0, "share_count": 0}
+                    }
+                }
+    except Exception as e:
+        print("Lỗi Kuaishou Engine:", e)
+    return None
+
 def parse_ytdlp_media(url):
-    """Bóc tách video đa nền tảng (YouTube, Facebook, Instagram, TikTok, Twitter/X, Pinterest, CapCut, Threads, Reddit...) bằng yt-dlp"""
+    """Bóc tách video đa nền tảng (Bilibili, Weibo, YouTube, Facebook, Instagram, TikTok...) bằng yt-dlp"""
     if not HAS_YTDLP:
         return None, f"yt-dlp chưa được cài đặt: {YTDLP_ERR_MSG}"
     
-    # Chuẩn hóa URL cho YouTube & Instagram
     clean_target_url = url
     if 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
         clean_target_url = clean_youtube_url(url)
@@ -135,7 +270,7 @@ def parse_ytdlp_media(url):
             'http_headers': {
                 'User-Agent': DESKTOP_UA,
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5'
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
             },
             'extractor_args': {
                 'youtube': {
@@ -184,7 +319,6 @@ def parse_instagram_fallback(url):
         headers = {'User-Agent': MOBILE_UA}
         clean_url = clean_instagram_url(url)
         
-        # 1. Thử lấy từ Embed Endpoint
         shortcode = ''
         match = re.search(r'(?:reel|reels|p)/([a-zA-Z0-9_-]+)', clean_url)
         if match:
@@ -262,10 +396,12 @@ def parse_douyin_or_tiktok_video(raw_input):
     is_instagram = 'instagram.com' in url_lower or 'instagr.am' in url_lower
     is_douyin = 'douyin.com' in url_lower
     is_tiktok = 'tiktok.com' in url_lower or 'vt.tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower
+    is_xiaohongshu = 'xiaohongshu.com' in url_lower or 'xhslink.com' in url_lower
+    is_kuaishou = 'kuaishou.com' in url_lower
 
-    # GIẢI MÃ REDIRECT CHO CÁC SHORTLINK (bỏ qua YouTube/Instagram để tránh HTTP 429)
+    # GIẢI MÃ REDIRECT CHO CÁC SHORTLINK
     final_url = input_url
-    if not (is_youtube or is_instagram) and ('v.douyin.com' in url_lower or 'vt.tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower or 'pin.it' in url_lower or 't.co' in url_lower):
+    if not (is_youtube or is_instagram) and ('v.douyin.com' in url_lower or 'vt.tiktok.com' in url_lower or 'vm.tiktok.com' in url_lower or 'xhslink.com' in url_lower or 'v.kuaishou.com' in url_lower or 'b23.tv' in url_lower):
         try:
             res = session.get(input_url, headers={'User-Agent': MOBILE_UA}, allow_redirects=True, timeout=8)
             final_url = res.url
@@ -274,6 +410,18 @@ def parse_douyin_or_tiktok_video(raw_input):
 
     video_id = extract_video_id(final_url)
     print(f"[MediaParser] Input: {input_url} | Final: {final_url} | VideoID: {video_id}")
+
+    # ===== ENGINE CHO TIỂU HỒNG THƯ (XIAOHONGSHU) =====
+    if is_xiaohongshu:
+        result_xhs = parse_xiaohongshu_media(final_url)
+        if result_xhs:
+            return result_xhs
+
+    # ===== ENGINE CHO KHÓA THỦ (KUAISHOU) =====
+    if is_kuaishou:
+        result_ks = parse_kuaishou_media(final_url)
+        if result_ks:
+            return result_ks
 
     # ===== ENGINE CHÍNH CHO DOUYIN =====
     if is_douyin and video_id:
@@ -339,13 +487,13 @@ def parse_douyin_or_tiktok_video(raw_input):
         except Exception as e_main:
             print("Lỗi Engine Douyin chính:", e_main)
 
-    # ===== ENGINE CHÍNH CHO TIKTOK (Ưu tiên TikWM chuyên dụng) =====
+    # ===== ENGINE CHÍNH CHO TIKTOK =====
     if is_tiktok:
         result_tik = parse_tikwm_media(final_url)
         if result_tik:
             return result_tik
 
-    # ===== ENGINE CHO YOUTUBE (CHUYÊN DỤNG CHO CẢ SHORTS VÀ YOUTUBE THƯỜNG) =====
+    # ===== ENGINE CHO YOUTUBE =====
     if is_youtube:
         result_yt, err_yt = parse_ytdlp_media(final_url)
         if result_yt:
@@ -355,7 +503,7 @@ def parse_douyin_or_tiktok_video(raw_input):
         if result_yt_fb:
             return result_yt_fb
 
-    # ===== DỰ PHÒNG CHUNG (yt-dlp ĐA NỀN TẢNG: Twitter, Pinterest, CapCut, Threads, Reddit...) =====
+    # ===== DỰ PHÒNG CHUNG (yt-dlp ĐA NỀN TẢNG: Bilibili, Weibo, YouTube, Facebook, Instagram...) =====
     result_ytdlp, err_ytdlp = parse_ytdlp_media(final_url)
     if result_ytdlp:
         return result_ytdlp
@@ -365,7 +513,6 @@ def parse_douyin_or_tiktok_video(raw_input):
         if result_ig:
             return result_ig
 
-    # Nếu là Douyin mà không lấy được -> Trả về thông báo thân thiện thay vì ném lỗi cookie yt-dlp
     if is_douyin:
         return {
             "success": False,
@@ -408,7 +555,7 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
         path = parsed_url.path.rstrip('/')
 
         # Điều hướng các đường dẫn SEO trang con về index.html
-        if path in ['/tiktok', '/douyin', '/facebook', '/instagram', '/youtube', '/twitter', '/capcut', '/pinterest', '/threads', '/reddit']:
+        if path in ['/tiktok', '/douyin', '/bilibili', '/xiaohongshu', '/kuaishou', '/weibo', '/facebook', '/instagram', '/youtube']:
             self.path = '/index.html'
             return super().do_GET()
 
@@ -431,10 +578,14 @@ class DouyinRequestHandler(SimpleHTTPRequestHandler):
                     referer = 'https://www.youtube.com/'
                 elif 'instagram' in url_lower or 'cdninstagram' in url_lower:
                     referer = 'https://www.instagram.com/'
-                elif 'twitter' in url_lower or 'x.com' in url_lower or 'twimg' in url_lower:
-                    referer = 'https://twitter.com/'
-                elif 'pinterest' in url_lower or 'pinimg' in url_lower:
-                    referer = 'https://www.pinterest.com/'
+                elif 'bilibili' in url_lower or 'bilivideo' in url_lower:
+                    referer = 'https://www.bilibili.com/'
+                elif 'xiaohongshu' in url_lower or 'xhscdn' in url_lower:
+                    referer = 'https://www.xiaohongshu.com/'
+                elif 'kuaishou' in url_lower or 'yximgs' in url_lower:
+                    referer = 'https://www.kuaishou.com/'
+                elif 'weibo' in url_lower or 'weibocdn' in url_lower:
+                    referer = 'https://weibo.com/'
 
                 headers = {'User-Agent': DESKTOP_UA, 'Referer': referer}
                 req = session.get(file_url, headers=headers, stream=True, timeout=15)
