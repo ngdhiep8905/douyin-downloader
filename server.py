@@ -54,13 +54,13 @@ def init_douyin_session():
         reg_url = 'https://ttwid.bytedance.com/ttwid/union/register/'
         payload = {
             'region': 'cn',
-            'aid': 1768,
+            'aid': 6383,
             'needFp': 'true',
             'fp': 'verify_lx',
             'service': 'www.douyin.com'
         }
-        headers = {'User-Agent': DESKTOP_UA, 'Referer': 'https://www.douyin.com/'}
-        session.post(reg_url, json=payload, headers=headers, timeout=5)
+        headers = {'User-Agent': DESKTOP_UA, 'Referer': 'https://www.douyin.com/', 'Content-Type': 'application/json'}
+        session.post(reg_url, json=payload, headers=headers, timeout=6)
     except Exception as e:
         print("Lỗi tạo ttwid cookie:", e)
 
@@ -364,6 +364,13 @@ def parse_douyin_or_tiktok_video(raw_input):
         result_ig = parse_instagram_fallback(final_url)
         if result_ig:
             return result_ig
+
+    # Nếu là Douyin mà không lấy được -> Trả về thông báo thân thiện thay vì ném lỗi cookie yt-dlp
+    if is_douyin:
+        return {
+            "success": False,
+            "error": "Không thể xử lý video Douyin này (Video riêng tư hoặc yêu cầu đăng nhập Douyin). Vui lòng thử lại với đường dẫn Douyin khác!"
+        }
 
     return {
         "success": False,
